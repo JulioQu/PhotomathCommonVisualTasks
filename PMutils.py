@@ -1,16 +1,11 @@
 import xml.etree.ElementTree as ET
 
-def isIgnorable(element):
-    lis = ['ViewportBottomleft',
+ignorable = ['ViewportBottomleft',
            'ViewportBottonRight',
            'step']
-    s = element.get('label')
-    return s in lis
 
 def setDefault(construction):
-    for element in construction:
-        if isIgnorable(element):
-            return
+    for element in construction.findall('element'):
         show = element.find('show')
         if show is not None:
             show.set('label', 'false')
@@ -38,24 +33,21 @@ def setDefaultPoint(point):
     ET.SubElement(point, 'pointStyle')
     point.find("pointStyle").set('val', '10')
 
-"""Makes blue the elements between x and y, including them,
+"""Makes blue the elements in (x, y],
 while making gray all the other elements."""
 def colorBlueBetween(x, y, construction):
-    inside = False
-    for element in construction:
-        if(isIgnorable(element)):
-            return
+    inside = False;
+    for element in construction.findall('element'):
         color = element.find('objColor')
         if color is None:
             color = ET.SubElement(element, 'objColor')
+        if inside:
+            colorBlue(color)
+        else:
+            colorGray(color)
 
         if element.get('label') == x:
             inside = True
-
-        if inside:
-            colorGray(color)
-        else:
-            colorBlue(color)
 
         if(element.get('label') == y):
             inside = False
@@ -64,24 +56,20 @@ def colorBlueBetween(x, y, construction):
 labeled as y"""
 def setOnlyBreakPoint(y, construction):
     for element in construction:
-        if(isIgnorable(element)):
-            return
-    bp = element.find('breakpoint')
-    if bp is None:
-        bp = ET.SubElement(element, 'breakpoint')
+        bp = element.find('breakpoint')
+        if bp is None:
+            bp = ET.SubElement(element, 'breakpoint')
 
-    if(element.get('label') == y):
-        bp.set('val', 'true')
-    else:
-        bp.set('val', 'false')
+        if(element.get('label') == y):
+            bp.set('val', 'true')
+        else:
+            bp.set('val', 'false')
 
 """Show all the elements until y, including y, and
 hide all the others."""
 def showUntil(y, construction):
     passed = False
-    for element in construction:
-        if(isIgnorable(element)):
-            return
+    for element in construction.findall('element'):
         show = element.find('show')
         if show is None:
             show = ET.SubElement(element, 'show')
@@ -92,6 +80,12 @@ def showUntil(y, construction):
 
         if(element.get('label') == y):
             passed = True
+
+def hideScaling(construction):
+    for element in construction.findall('element'):
+        if element.get('label') in ignorable:
+            if element.find('show') is not None:
+                element.find('show').set('object','false')
 
 def colorGray(color):
     color.set('r', '127')
@@ -108,5 +102,3 @@ def colorOrange(color):
 
 def colorGreen(color):
     return
-
-tree.write('geogebra.xml')
