@@ -29,9 +29,14 @@ def setDefaultPoint(point):
 
     pointStyle = point.find('pointStyle')
     if pointStyle is not None:
+        ET.SubElement(point, 'pointStyle')
+        pointStyle = point.find("pointStyle")
+    if pointStyle.get('val')=="0":
         pointStyle.set('val', '10')
-    ET.SubElement(point, 'pointStyle')
-    point.find("pointStyle").set('val', '10')
+
+    show = point.find('show')
+    if show is not None:
+        show.set('label','false')
 
 """Makes blue the elements in (x, y],
 while making gray all the other elements."""
@@ -83,7 +88,7 @@ def showUntil(y, construction):
 
 def hideScaling(construction):
     for element in construction.findall('element'):
-        if element.get('label') in ignorable:
+        if (element.get('label') == 'ViewportTopRight') or (element.get('label') == 'ViewportBottomLeft'):
             if element.find('show') is not None:
                 element.find('show').set('object','false')
 
